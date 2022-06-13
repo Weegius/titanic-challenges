@@ -84,11 +84,12 @@ const getCasualityCountForClass = (data, pclass) => {
 // passenger data where the age is missing.
 
 const getMinAge = (data) => {
+  const hasanAge = (passenger) => passenger.fields.age !== null;
 
-  const hasAge = (passenger) => passenger.fields.age !== null;
-
+  /* Filtering the data for passengers that have an age, mapping the array to only return the age,
+	sorting the array in ascending order, and returning the first element in the array. */
   return data
-    .filter(hasAge)
+    .filter(hasanAge)
     .map((passenger) => passenger.fields.age)
     .sort((a, b) => a - b)[0];
 };
@@ -98,7 +99,18 @@ const getMinAge = (data) => {
 // age is missing.
 
 const getMaxAge = (data) => {
-  return 0;
+  /**
+   * We filter out all passengers who don't have an age, then we map over the remaining passengers and
+   * return their age, then we sort the ages in descending order, and finally we return the first age
+   * in the sorted array
+   * @param passenger - the current passenger
+   */
+  const hasanAge = (passenger) => passenger.fields.age !== null;
+
+  return data
+    .filter(hasanAge)
+    .map((passenger) => passenger.fields.age)
+    .sort((a, b) => b - a)[0];
 };
 
 // 9 ---------------------------------------------------------------
@@ -108,7 +120,8 @@ const getMaxAge = (data) => {
 // embarkation code. Return the count of passenegers with that code.
 
 const getEmbarkedCount = (data, embarked) => {
-  return 0;
+  return data.filter((passenger) => passenger.fields.embarked === embarked)
+    .length;
 };
 
 // 10 ---------------------------------------------------------------
@@ -116,7 +129,8 @@ const getEmbarkedCount = (data, embarked) => {
 // for some passengers you'll need to filter this out!
 
 const getMinFare = (data) => {
-  return -1;
+  fares = data.map((passenger) => passenger.fields.fare);
+  return Math.min(...fares);
 };
 
 // 11 ---------------------------------------------------------------
@@ -124,7 +138,8 @@ const getMinFare = (data) => {
 // passengers are missing data for fare. Be sure to filter these!
 
 const getMaxFare = (data) => {
-  return 0;
+  fares = data.map((passenger) => passenger.fields.fare);
+  return Math.max(...fares);
 };
 
 // 12 ---------------------------------------------------------------
@@ -132,7 +147,7 @@ const getMaxFare = (data) => {
 // "sex" property that is either "male" or "female"
 
 const getPassengersByGender = (data, gender) => {
-  return 0;
+  return data.filter((passenger) => passenger.fields.sex === gender).length;
 };
 
 // 13 ---------------------------------------------------------------
@@ -141,14 +156,20 @@ const getPassengersByGender = (data, gender) => {
 // to the "sex" property and check the "survived" property.
 
 const getSurvivorsByGender = (data, gender) => {
-  return 0;
+  return data.filter(
+    (passenger) =>
+      passenger.fields.sex === gender && passenger.fields.survived === "Yes"
+  ).length;
 };
 
 // 14 ---------------------------------------------------------------
 // Return the number of passengers who did not survived by gender.
 
 const getCasualitiesByGender = (data, gender) => {
-  return 0;
+  return data.filter(
+    (passenger) =>
+      passenger.fields.sex === gender && passenger.fields.survived === "No"
+  ).length;
 };
 
 // 15 --------------------------------------------------------------
@@ -157,7 +178,8 @@ const getCasualitiesByGender = (data, gender) => {
 // where the fare is missing!
 
 const getTotalFare = (data) => {
-  return 0;
+  fares = data.map((passenger) => passenger.fields.fare);
+  return fares.reduce((acc, curr) => acc + curr, 0);
 };
 
 // 16 --------------------------------------------------------------
@@ -166,7 +188,8 @@ const getTotalFare = (data) => {
 // missing a fare!
 
 const getAverageFare = (data) => {
-  return 0;
+  fares = data.map((passenger) => passenger.fields.fare);
+  return fares.reduce((acc, curr) => acc + curr, 0) / fares.length;
 };
 
 // 17 --------------------------------------------------------------
@@ -178,7 +201,18 @@ const getAverageFare = (data) => {
 // 4 + 5 = 9 / 2 median is 4.5!
 
 const getMedianFare = (data) => {
-  return 0;
+  /* Mapping over the data and returning the fare for each passenger. It then sorts the fares in
+	ascending order. It then finds the middle index of the array. If the array has an odd number of
+	elements, it returns the middle element. If the array has an even number of elements, it returns
+	the average of the two middle elements. */
+  fares = data.map((passenger) => passenger.fields.fare);
+  fares.sort((a, b) => a - b);
+  const middle = Math.floor(fares.length / 2);
+  if (fares.length % 2 !== 0) {
+    return fares[middle];
+  } else {
+    return (fares[middle - 1] + fares[middle]) / 2;
+  }
 };
 
 // 18 --------------------------------------------------------------
@@ -187,14 +221,28 @@ const getMedianFare = (data) => {
 // available.
 
 const getAverageAge = (data) => {
-  return 0;
+  const passengers = data.filter((passenger) => "age" in passenger.fields);
+  return (
+    passengers.reduce((prev, curr) => prev + curr.fields.age, 0) /
+    passengers.length
+  );
 };
 
 // 19 --------------------------------------------------------------
 // Return the median age from passengers.
 
 const getMedianAge = (data) => {
-  return 0;
+  /* Filtering the data for passengers that have an age, mapping the array to only return the age,
+ sorting the array in ascending order, and returning the middle element in the array. */
+  const passengers = data.filter((passenger) => "age" in passenger.fields);
+  const ages = passengers.map((passenger) => passenger.fields.age);
+  ages.sort((a, b) => a - b);
+  const middle = Math.floor(ages.length / 2);
+  if (ages.length % 2 !== 0) {
+    return ages[middle];
+  } else {
+    return (ages[middle - 1] + ages[middle]) / 2;
+  }
 };
 
 // 20 --------------------------------------------------------------
@@ -202,7 +250,16 @@ const getMedianAge = (data) => {
 // the total number.
 
 const getAverageAgeByGender = (data, gender) => {
-  return 0;
+  /* Filtering the data for passengers that have a gender that matches the gender passed in. It then
+	filters the array for passengers that have an age. It then maps the array to only return the age.
+	It then reduces the array to a single value by adding the previous value to the current value. It
+	then divides the total by the length of the array. */
+	let passengers = data.filter((passenger) => passenger.fields.sex === gender);
+  passengers = passengers.filter((passenger) => "age" in passenger.fields);
+  return (
+    passengers.reduce((prev, curr) => prev + curr.fields.age, 0) /
+    passengers.length
+  );
 };
 
 // --------------------------------------------------------------
